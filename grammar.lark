@@ -1,0 +1,35 @@
+// Грамматика для варианта 22
+start: (const_decl | dict | _NL)*
+
+const_decl: "set" CNAME "=" value _NL
+?value: number
+      | string
+      | array
+      | dict
+      | const_expr
+
+const_expr: "$" expr "$"
+?expr: add_expr
+add_expr: add_expr "+" mul_expr -> add
+        | mul_expr
+mul_expr: func_call
+        | CNAME
+        | number
+        | "(" expr ")"
+func_call: "len" "(" (string|array|CNAME) ")"
+
+dict: "@{" _NL? [pair (_NL pair)*] _NL? "}" _NL?
+pair: CNAME "=" value ";"
+
+array: "[" [value (WS value)*] "]" _NL?
+
+string: "'" /[^']*/ "'"
+
+CNAME: /[_A-Z][_a-zA-Z0-9]*/
+number: SIGNED_INT
+
+COMMENT: "/#" /(.|\n)+/ "#/"
+_NL: /(\r?\n)+\s*/
+
+%ignore COMMENT
+%ignore /[ \t\f]+/
